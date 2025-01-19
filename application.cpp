@@ -370,17 +370,19 @@ void Application::render() {
             }
         } else {
             TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Waiting for device...");
-            Spacing();
-            if (Button("Use sudo")) {
-                // Try for permission if config couldn't be read
-                if (!config.has_value() && getuid() != 0) {
-                    char self[PATH_MAX];
-                    ssize_t self_len = readlink("/proc/self/exe", self, sizeof(self));
-                    if (self_len >= 0) {
-                        self[self_len] = '\0';
-                        execlp("pkexec", "pkexec", self, nullptr);
-                        execlp("gksudo", "gksudo", self, nullptr);
-                        execlp("x-terminal-emulator", "terminal", "-e", "sudo", "setsid", self, nullptr);
+            if (getuid() != 0) {
+                Spacing();
+                if (Button("Use sudo")) {
+                    // Try for permission if config couldn't be read
+                    if (!config.has_value()) {
+                        char self[PATH_MAX];
+                        ssize_t self_len = readlink("/proc/self/exe", self, sizeof(self));
+                        if (self_len >= 0) {
+                            self[self_len] = '\0';
+                            execlp("pkexec", "pkexec", self, nullptr);
+                            execlp("gksudo", "gksudo", self, nullptr);
+                            execlp("x-terminal-emulator", "terminal", "-e", "sudo", "setsid", self, nullptr);
+                        }
                     }
                 }
             }
