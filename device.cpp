@@ -1,5 +1,6 @@
 #include "device.hpp"
 
+#include <sstream>
 #include <cstdio>
 #include <cstring>
 #include <hidapi/hidapi.h>
@@ -74,5 +75,26 @@ bool factoryReset() noexcept {
     CommandData command{OpCode::factoryReset};
     const auto written = hid_write(device, reinterpret_cast<const unsigned char *>(&command), sizeof(command));
     return written == sizeof(command);
+}
+
+std::string getVersion() noexcept {
+    auto device = openDevice();
+    if (!device)
+        return "";
+
+    CommandData command{OpCode::getFwVersion};
+    const auto written = hid_send_feature_report(device, reinterpret_cast<const unsigned char *>(&command), sizeof(command));
+    if (written != sizeof(command))
+        return "";
+
+    const auto read_ = hid_get_feature_report(device, reinterpret_cast<unsigned char *>(&command), sizeof(command) - 1);
+    if (read_ != sizeof(command) - 2)
+        return "";
+
+    const auto major = command.pad0[15],
+               minor = command.pad0[16];
+    std::stringstream stream;
+    stream << std::hex << unsigned(minor) << '.' << unsigned(major);
+    return stream.str();
 }
 }

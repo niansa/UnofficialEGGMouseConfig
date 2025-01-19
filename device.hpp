@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <string>
 #include <optional>
 #include <cstdint>
 #include <cstddef>
@@ -10,7 +10,8 @@ namespace Device {
 enum class OpCode : uint16_t {
     storeConfig = 0x11a0,
     loadConfig = 0x12a1,
-    factoryReset = 0x13a1
+    factoryReset = 0x13a1,
+    getFwVersion = 0x02a1
 };
 
 struct __attribute__((__packed__)) ConfigData {
@@ -20,11 +21,11 @@ struct __attribute__((__packed__)) ConfigData {
     OpCode op;
     uint8_t pad0[19] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
     uint8_t polling_rate_divider = 1; // polling_rate = 8KHz / polling_rate_divider
-    enum class FilterFlags : uint8_t {
-        slamclickFilter = 0x01,
-        motionJitterFilter = 0x10
+    struct FilterFlags {
+        static constexpr uint8_t slamclickFilter = 0x01,
+                                 motionJitterFilter = 0x10;
     };
-    FilterFlags filter_flags = FilterFlags::slamclickFilter;
+    uint8_t filter_flags = FilterFlags::slamclickFilter;
     uint8_t pad1[2] = {0x00, 0x00};
     uint8_t lod = 2;
     bool angle_snapping = false;
@@ -104,7 +105,12 @@ struct __attribute__((__packed__)) ConfigData {
             return SPDTMode::off;
         }
     } button_configs[button_config_count];
-    uint8_t pad5[2];
+
+    struct CustomFlags {
+        static constexpr uint8_t experimental = 1 << 0;
+    };
+    uint16_t custom_flags = 0;
+    uint8_t pad5[913];
 };
 static_assert(sizeof(bool) == 1);
 static_assert(offsetof(ConfigData, polling_rate_divider) == 21);
@@ -119,7 +125,7 @@ static_assert(offsetof(ConfigData, cpis[0].x) == 52);
 static_assert(offsetof(ConfigData, cpis[0].y) == 54);
 static_assert(offsetof(ConfigData, cpis[3].y) == 69);
 static_assert(offsetof(ConfigData, button_configs[0].spdt) == 77);
-//static_assert(sizeof(ConfigData) == 1041);
+static_assert(sizeof(ConfigData) == 1041);
 
 
 struct __attribute__((__packed__)) CommandData {
@@ -132,4 +138,5 @@ static_assert(sizeof(CommandData) == 64);
 bool writeConfig(ConfigData&) noexcept;
 std::optional<ConfigData> readConfig() noexcept;
 bool factoryReset() noexcept;
+std::string getVersion() noexcept;
 }

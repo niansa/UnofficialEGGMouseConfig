@@ -4,6 +4,8 @@
 #include <string>
 #include <optional>
 #include <algorithm>
+#include <fstream>
+#include <cstdio>
 #include <imgui.h>
 #include <hidapi/hidapi.h>
 #include <GL/gl.h>
@@ -199,9 +201,9 @@ void Application::advancedSettings() {
         Checkbox("Slamclick Filter", &slamclick_filter);
         SameLine();
         Checkbox("Motion Jitter Filter", &motion_jitter_filter);
-        config->filter_flags = static_cast<Device::ConfigData::FilterFlags>(
-            (slamclick_filter ? static_cast<uint8_t>(Device::ConfigData::FilterFlags::slamclickFilter) : 0) |
-            (motion_jitter_filter ? static_cast<uint8_t>(Device::ConfigData::FilterFlags::motionJitterFilter) : 0));
+        config->filter_flags =
+            (slamclick_filter ? Device::ConfigData::FilterFlags::slamclickFilter : 0) |
+            (motion_jitter_filter ? Device::ConfigData::FilterFlags::motionJitterFilter : 0);
     }
 
     Spacing();
@@ -273,16 +275,26 @@ void Application::advancedSettings() {
 }
 
 void Application::experimentalSettings() {
-    Checkbox("Custom Polling Rate Divider", &custom_polling_rate);
-    BeginDisabled(!custom_polling_rate);
-    InputScalar("##9845", ImGuiDataType_U8, &config->polling_rate_divider, ptrFromConst<int, 1>(), nullptr, "%u");
-    if (config->polling_rate_divider == 0)
-        config->polling_rate_divider = 1;
-    Text("%u Hz", 8000 / config->polling_rate_divider);
-    EndDisabled();
+    TextUnformatted("Experimental features can brick your mouse");
+    if (~config->custom_flags & Device::ConfigData::CustomFlags::experimental) {
+        if (Button("Accept risk"))
+            config->custom_flags |= Device::ConfigData::CustomFlags::experimental;
+    } else {
+        Separator();
+        Checkbox("Custom Polling Rate Divider", &custom_polling_rate);
+        BeginDisabled(!custom_polling_rate);
+        InputScalar("##9845", ImGuiDataType_U8, &config->polling_rate_divider, ptrFromConst<int, 1>(), nullptr, "%u");
+        if (config->polling_rate_divider == 0)
+            config->polling_rate_divider = 1;
+        Text("%u Hz", 8000 / config->polling_rate_divider);
+        EndDisabled();
+    }
 }
 
 void Application::info() {
+    if (!fw_version.has_value())
+        fw_version = Device::getVersion();
+
     SeparatorText("Unofficial EGG Mouse Config");
     TextUnformatted("Software: " PROJECT_VERSION);
     Text("HIDAPI: %s", hid_version_str());
@@ -290,10 +302,33 @@ void Application::info() {
     TextUnformatted("Compiler: " COMPILER_VERSION);
 
     SeparatorText("XM2 8k");
+    Text("Firmware: %s", fw_version->c_str());
     if (Button("Factory Reset")) {
         Device::factoryReset();
         readConfig();
     }
+
+    SeparatorText("Settings Backup");
+    if (Button("Export")) {
+        const auto path = fileDialog(true);
+        std::ofstream file(path, std::ios::binary);
+        file.write(reinterpret_cast<const char *>(&*config), sizeof(*config));
+    }
+    SameLine();
+    if (Button("Import")) {
+        const auto path = fileDialog(false);
+        std::ifstream file(path, std::ios::binary);
+        file.read(reinterpret_cast<char *>(&*config), sizeof(*config));
+    }
+}
+
+std::string Application::fileDialog(bool saveMode) {
+    char filename[1024];
+    FILE *f = popen(("zenity --file-selection"+std::string(saveMode?" --save":"")).c_str(), "r");
+    fgets(filename, 1024, f);
+    filename[strlen(filename) - 1] = 0;
+    std::string file(filename);
+    return file;
 }
 
 void Application::render() {
