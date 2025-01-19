@@ -365,7 +365,7 @@ void Application::render() {
                 Separator();
                 if (Button("Apply")) {
                     Device::writeConfig(config.value());
-                    readConfig();
+                    onNewConfig();
                 }
             }
         } else {
