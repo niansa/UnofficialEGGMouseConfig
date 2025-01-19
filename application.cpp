@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <fstream>
 #include <cstdio>
+#include <unistd.h>
+#include <linux/limits.h>
 #include <imgui.h>
 #include <hidapi/hidapi.h>
 #include <GL/gl.h>
@@ -179,7 +181,7 @@ void Application::advancedSettings() {
     EndDisabled();
 
     const auto get_polling_rate_str = [] (unsigned rate) {
-        return std::to_string(8000/rate)+" Hz";
+        return std::to_string(8000/(rate?rate:1))+" Hz";
     };
 
     BeginDisabled(custom_polling_rate);
@@ -368,6 +370,20 @@ void Application::render() {
             }
         } else {
             TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Waiting for device...");
+            Spacing();
+            if (Button("Use sudo")) {
+                // Try for permission if config couldn't be read
+                if (!config.has_value() && getuid() != 0) {
+                    char self[PATH_MAX];
+                    ssize_t self_len = readlink("/proc/self/exe", self, sizeof(self));
+                    if (self_len >= 0) {
+                        self[self_len] = '\0';
+                        execlp("pkexec", "pkexec", self, nullptr);
+                        execlp("gksudo", "gksudo", self, nullptr);
+                        execlp("x-terminal-emulator", "terminal", "-e", "sudo", "setsid", self, nullptr);
+                    }
+                }
+            }
             readConfig();
         }
     }
