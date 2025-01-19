@@ -18,8 +18,8 @@ class Application {
 
     void basicSettings();
     void advancedSettings();
-    void buttonMappings();
-    void experimental();
+    void experimentalSettings();
+    void info();
 
 public:
     Application();

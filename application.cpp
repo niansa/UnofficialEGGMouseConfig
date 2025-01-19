@@ -5,6 +5,8 @@
 #include <optional>
 #include <algorithm>
 #include <imgui.h>
+#include <hidapi/hidapi.h>
+#include <GL/gl.h>
 
 using namespace ImGui;
 
@@ -270,98 +272,7 @@ void Application::advancedSettings() {
     }
 }
 
-void Application::buttonMappings() {
-    enum class SubMenu {
-        none,
-        mouse,
-        cpi,
-        media
-    } subMenu = SubMenu::none;
-
-    const auto buttonMappingDropdown = [&subMenu] (const char *label, const char *preview) -> std::optional<Device::ConfigData::ButtonConfig::Mapping> {
-        using ButtonConfig = Device::ConfigData::ButtonConfig;
-        using enum ButtonConfig::MappingType;
-        using enum ButtonConfig::MouseKeys;
-        using enum ButtonConfig::ScrollWheel;
-        using enum ButtonConfig::MediaKeys;
-
-        const auto getMainPreview = [&subMenu, preview] () {
-            switch (subMenu) {
-            case SubMenu::none: return preview;
-            case SubMenu::mouse: return "Mouse";
-            case SubMenu::cpi: return "CPI";
-            case SubMenu::media: return "Media";
-            }
-        };
-
-        if (BeginCombo(label, getMainPreview()) || subMenu != SubMenu::none) {
-            if (Selectable("Mouse"))
-                subMenu = SubMenu::mouse;
-            if (Selectable("Keyboard Key")) {
-                //...
-            }
-            if (Selectable("CPI"))
-                subMenu = SubMenu::cpi;
-            if (Selectable("Media"))
-                subMenu = SubMenu::media;
-            if (Selectable("Disable"))
-                return {{disable}};
-
-            EndCombo();
-        }
-
-        if (subMenu != SubMenu::none) {
-            if (BeginCombo(label, preview)) {
-                switch (subMenu) {
-                case SubMenu::none: __builtin_unreachable();
-                case SubMenu::mouse: {
-                    if (Selectable("Left Click"))
-                        return {{.type = mouse, .mouse = left}};
-                    if (Selectable("Right Click"))
-                        return {{.type = mouse, .mouse = right}};
-                    if (Selectable("Middle Click"))
-                        return {{.type = mouse, .mouse = middle}};
-                    if (Selectable("Forward"))
-                        return {{.type = mouse, .mouse = forward}};
-                    if (Selectable("Back"))
-                        return {{.type = mouse, .mouse = back}};
-                    if (Selectable("Scroll Up"))
-                        return {{.type = scroll, .scroll = up}};
-                    if (Selectable("Scroll Down"))
-                        return {{.type = scroll, .scroll = down}};
-                } break;
-                case SubMenu::cpi: {
-
-                } break;
-                case SubMenu::media: {
-                    if (Selectable("Play/Pause"))
-                        return {{.type = media, .media = playPause}};
-                    if (Selectable("Next"))
-                        return {{.type = media, .media = next}};
-                    if (Selectable("Previous"))
-                        return {{.type = media, .media = previous}};
-                    if (Selectable("Mute"))
-                        return {{.type = media, .media = mute}};
-                    if (Selectable("Volume Up"))
-                        return {{.type = media, .media = volumeUp}};
-                    if (Selectable("Volume Down"))
-                        return {{.type = media, .media = volumeDown}};
-                    if (Selectable("Browser"))
-                        return {{.type = media, .media = browser}};
-                    if (Selectable("Explorer"))
-                        return {{.type = media, .media = explorer}};
-                }
-                }
-            }
-        }
-
-        return {};
-    };
-
-    buttonMappingDropdown("Left Click", "???");
-}
-
-void Application::experimental() {
+void Application::experimentalSettings() {
     Checkbox("Custom Polling Rate Divider", &custom_polling_rate);
     BeginDisabled(!custom_polling_rate);
     InputScalar("##9845", ImGuiDataType_U8, &config->polling_rate_divider, ptrFromConst<int, 1>(), nullptr, "%u");
@@ -371,6 +282,20 @@ void Application::experimental() {
     EndDisabled();
 }
 
+void Application::info() {
+    SeparatorText("Unofficial EGG Mouse Config");
+    TextUnformatted("Software: " PROJECT_VERSION);
+    Text("HIDAPI: %s", hid_version_str());
+    Text("OpenGL: %s", glGetString(GL_RENDERER));
+    TextUnformatted("Compiler: " COMPILER_VERSION);
+
+    SeparatorText("XM2 8k");
+    if (Button("Factory Reset")) {
+        Device::factoryReset();
+        readConfig();
+    }
+}
+
 void Application::render() {
     SetNextWindowPos(ImVec2(0.0f, 0.0f));
     SetNextWindowSize(GetIO().DisplaySize);
@@ -378,32 +303,36 @@ void Application::render() {
     Begin("Main Window", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
     {
         if (config.has_value()) {
+            bool show_apply = true;
             if (BeginTabBar("Main Tabs", ImGuiTabBarFlags_None)) {
-                if (BeginTabItem("Basic Settings")) {
+                if (BeginTabItem("Basic")) {
                     basicSettings();
                     EndTabItem();
                 }
-                if (BeginTabItem("Advanced Settings")) {
+                if (BeginTabItem("Advanced")) {
                     advancedSettings();
                     EndTabItem();
                 }
-                if (BeginTabItem("Button Mappings")) {
-                    buttonMappings();
+                if (BeginTabItem("Experimental")) {
+                    experimentalSettings();
                     EndTabItem();
                 }
-                if (BeginTabItem("Experimental")) {
-                    experimental();
+                if (BeginTabItem("Info")) {
+                    info();
                     EndTabItem();
+                    show_apply = false;
                 }
                 EndTabBar();
             }
-            Separator();
-            if (Button("Apply")) {
-                Device::writeConfig(config.value());
-                readConfig();
+            if (show_apply) {
+                Separator();
+                if (Button("Apply")) {
+                    Device::writeConfig(config.value());
+                    readConfig();
+                }
             }
         } else {
-            TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Waiting for device...");
+            TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Waiting for device...");
             readConfig();
         }
     }
