@@ -303,6 +303,7 @@ void Application::info() {
     Text("OpenGL: %s", glGetString(GL_RENDERER));
     TextUnformatted("Compiler: " COMPILER_VERSION);
 
+    Spacing();
     SeparatorText("XM2 8k");
     Text("Firmware: %s", fw_version->c_str());
     if (Button("Factory Reset")) {
@@ -310,6 +311,7 @@ void Application::info() {
         readConfig();
     }
 
+    Spacing();
     SeparatorText("Settings Backup");
     if (Button("Export")) {
         const auto path = fileDialog(true);
@@ -343,18 +345,22 @@ void Application::render() {
             bool show_apply = true;
             if (BeginTabBar("Main Tabs", ImGuiTabBarFlags_None)) {
                 if (BeginTabItem("Basic")) {
+                    Spacing();
                     basicSettings();
                     EndTabItem();
                 }
                 if (BeginTabItem("Advanced")) {
+                    Spacing();
                     advancedSettings();
                     EndTabItem();
                 }
                 if (BeginTabItem("Experimental")) {
+                    Spacing();
                     experimentalSettings();
                     EndTabItem();
                 }
                 if (BeginTabItem("Info")) {
+                    Spacing();
                     info();
                     EndTabItem();
                     show_apply = false;
