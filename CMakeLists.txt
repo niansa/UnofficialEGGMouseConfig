@@ -29,12 +29,7 @@ add_library(imgui STATIC
     imgui/misc/freetype/imgui_freetype.cpp
     imgui/backends/imgui_impl_glfw.cpp imgui/backends/imgui_impl_opengl3.cpp
 )
-target_link_libraries(imgui PUBLIC glfw GL)
-if (BUILD_STATIC)
-    target_link_libraries(imgui PRIVATE libfreetype.a libpng16.a libz.a libbz2.a libbrotlidec.a libbrotlicommon.a)
-else()
-    target_link_libraries(imgui PRIVATE freetype)
-endif()
+target_link_libraries(imgui PUBLIC glfw GL freetype)
 target_include_directories(imgui PRIVATE /usr/include/freetype2)
 target_include_directories(imgui PUBLIC imgui/ imgui/backends/)
 target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_FREETYPE)
