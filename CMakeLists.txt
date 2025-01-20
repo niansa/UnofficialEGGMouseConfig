@@ -43,7 +43,7 @@ add_executable(EGGMouseConfig main.cpp
     application.hpp application.cpp
     device.hpp device.cpp)
 target_compile_options(EGGMouseConfig PRIVATE -Wno-address-of-packed-member)
-target_compile_definitions(EGGMouseConfig PRIVATE PROJECT_VERSION="${GIT_TAG}" COMPILER_VERSION="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+target_compile_definitions(EGGMouseConfig PRIVATE PROJECT_VERSION="${GIT_TAG}" COMPILER_VERSION="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" PRODUCTID=0x1966)
 target_link_libraries(EGGMouseConfig PRIVATE imgui)
 if (BUILD_STATIC)
     target_link_libraries(EGGMouseConfig PRIVATE libhidapi-libusb.a libusb-1.0.a udev)
