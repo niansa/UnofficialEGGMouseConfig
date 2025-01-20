@@ -53,3 +53,26 @@ include(GNUInstallDirs)
 install(TARGETS EGGMouseConfig
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if (CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
+    message(STATUS "Executable compression enabled")
+
+    add_custom_command(
+      OUTPUT EGGMouseConfigStripped
+      COMMAND strip EGGMouseConfig -o EGGMouseConfigStripped
+      DEPENDS EGGMouseConfig
+      COMMENT "Stripping executable"
+      VERBATIM
+    )
+    add_custom_command(
+      OUTPUT EGGMouseConfigPacked
+      COMMAND upx --best --ultra-brute EGGMouseConfigStripped -o EGGMouseConfigPacked
+      DEPENDS EGGMouseConfigStripped
+      COMMENT "Compressing executable"
+      VERBATIM
+    )
+    add_custom_target(
+      StripAndCompress ALL
+      DEPENDS EGGMouseConfigPacked
+    )
+endif()
