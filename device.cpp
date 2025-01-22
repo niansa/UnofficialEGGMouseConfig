@@ -31,35 +31,33 @@ public:
     }
 };
 
-HidDevice openDevice() noexcept {
-#ifdef PRODUCTID
-    auto fres = hid_open(0x3367, PRODUCTID, nullptr);
-    if (!fres)
-        fprintf(stderr, "hidapi open error: %ls\n", hid_error(fres));
+HidDevice openDevice(unsigned pid) noexcept {
+    auto fres = hid_open(0x3367, pid, nullptr);
     return fres;
-#else
-    return nullptr;
-#endif
 }
 }
 
-bool writeConfig(ConfigData& config) noexcept {
-#ifdef PRODUCTID
-    auto device = openDevice();
+std::pair<unsigned, MouseConfig> getMouseConfig() noexcept {
+    for (const auto& [pid, config] : mouseConfigs) {
+        if (openDevice(pid))
+            return {pid, config};
+    }
+    return {0, {}};
+}
+
+bool writeConfig(unsigned pid, ConfigData& config) noexcept {
+    auto device = openDevice(pid);
     if (!device)
         return false;
 
     config.op = OpCode::storeConfig;
     const auto written = hid_write(device, reinterpret_cast<const unsigned char *>(&config), sizeof(config));
     return written == sizeof(config);
-#else
-    return true;
-#endif
+
 }
 
-std::optional<ConfigData> readConfig() noexcept{
-#ifdef PRODUCTID
-    auto device = openDevice();
+std::optional<ConfigData> readConfig(unsigned pid) noexcept{
+    auto device = openDevice(pid);
     if (!device)
         return {};
 
@@ -74,28 +72,20 @@ std::optional<ConfigData> readConfig() noexcept{
         return {};
 
     return config;
-#else
-    return ConfigData();
-#endif
 }
 
-bool factoryReset() noexcept {
-#ifdef PRODUCTID
-    auto device = openDevice();
+bool factoryReset(unsigned pid) noexcept {
+    auto device = openDevice(pid);
     if (!device)
         return false;
 
     CommandData command{OpCode::factoryReset};
     const auto written = hid_write(device, reinterpret_cast<const unsigned char *>(&command), sizeof(command));
     return written == sizeof(command);
-#else
-    return true;
-#endif
 }
 
-std::string getVersion() noexcept {
-#ifdef PRODUCTID
-    auto device = openDevice();
+std::string getVersion(unsigned pid) noexcept {
+    auto device = openDevice(pid);
     if (!device)
         return "";
 
@@ -113,8 +103,5 @@ std::string getVersion() noexcept {
     std::stringstream stream;
     stream << std::hex << unsigned(minor) << '.' << unsigned(major);
     return stream.str();
-#else
-    return "stub";
-#endif
 }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "config.hpp"
+
 #include <string>
 #include <optional>
 #include <cstdint>
@@ -135,8 +137,9 @@ struct __attribute__((__packed__)) CommandData {
 static_assert(sizeof(CommandData) == 64);
 
 
-bool writeConfig(ConfigData&) noexcept;
-std::optional<ConfigData> readConfig() noexcept;
-bool factoryReset() noexcept;
-std::string getVersion() noexcept;
+std::pair<unsigned, MouseConfig> getMouseConfig() noexcept;
+bool writeConfig(unsigned pid, ConfigData&) noexcept;
+std::optional<ConfigData> readConfig(unsigned pid) noexcept;
+bool factoryReset(unsigned pid) noexcept;
+std::string getVersion(unsigned pid) noexcept;
 }

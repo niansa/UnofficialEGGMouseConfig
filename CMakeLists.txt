@@ -17,7 +17,6 @@ execute_process(
 message(STATUS "Determined EGG Mouse Config version ${GIT_TAG}")
 
 option(BUILD_STATIC "Attempt to link libraries statically to keep runtime dependencies down" OFF)
-set(EGG_PRODUCT_ID 1966 CACHE STRING "EGG product to target")
 
 if (BUILD_STATIC)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
@@ -38,10 +37,11 @@ target_compile_definitions(imgui PUBLIC IMGUI_ENABLE_FREETYPE)
 add_executable(EGGMouseConfig main.cpp
     application.hpp application.cpp
     device.hpp device.cpp
-    config.h)
+    config.hpp config.cpp
+    themes.inc)
 target_compile_options(EGGMouseConfig PRIVATE -Wno-address-of-packed-member)
 target_compile_options(EGGMouseConfig PUBLIC -fdata-sections -ffunction-sections)
-target_compile_definitions(EGGMouseConfig PRIVATE PROJECT_VERSION="${GIT_TAG}" COMPILER_VERSION="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}" PRODUCTID=0x${EGG_PRODUCT_ID})
+target_compile_definitions(EGGMouseConfig PRIVATE PROJECT_VERSION="${GIT_TAG}" COMPILER_VERSION="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 target_link_options(EGGMouseConfig PUBLIC -Wl,--gc-sections)
 target_link_libraries(EGGMouseConfig PRIVATE imgui)
 if (BUILD_STATIC)

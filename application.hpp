@@ -1,6 +1,7 @@
 #pragma once
 
 #include "device.hpp"
+#include "config.hpp"
 
 #include <optional>
 
@@ -10,6 +11,8 @@ class Application {
 
     std::optional<Device::ConfigData> config;
     std::optional<std::string> fw_version;
+
+    std::pair<unsigned, MouseConfig> mouse_config;
 
     bool split_xy;
     bool custom_polling_rate;
