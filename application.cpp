@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "device.hpp"
+#include "config.h"
 
 #include <string>
 #include <optional>
@@ -171,14 +172,18 @@ void Application::basicSettings() {
 }
 
 void Application::advancedSettings() {
+#ifndef HAS_MOTION_SYNC_AT_8K
     if (config->polling_rate_divider <= 1) {
         config->motion_sync = false;
         BeginDisabled(true);
     } else{
         BeginDisabled(false);
     }
+#endif
     Checkbox("Motion Sync", &config->motion_sync);
+#ifndef HAS_MOTION_SYNC_AT_8K
     EndDisabled();
+#endif
 
     const auto get_polling_rate_str = [] (unsigned rate) {
         return std::to_string(8000/(rate?rate:1))+" Hz";
@@ -304,7 +309,7 @@ void Application::info() {
     TextUnformatted("Compiler: " COMPILER_VERSION);
 
     Spacing();
-    SeparatorText("XM2 8k");
+    SeparatorText(mouseConfig.name);
     Text("Firmware: %s", fw_version->c_str());
     if (Button("Factory Reset")) {
         Device::factoryReset();
