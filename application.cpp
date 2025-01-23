@@ -33,16 +33,18 @@ T *ptrFromConst() {
 
 Application::Application() {
     readConfig();
-
-    switch (mouse_config.first) {
-    case 0x1976: Themes::purpleComfy(); break;
-    default: Themes::defaultTheme();
-    }
 }
 
 void Application::readConfig() {
-    if (mouse_config.first == 0)
+    if (mouse_config.first == 0) {
         mouse_config = Device::getMouseConfig();
+
+        // Select theme
+        switch (mouse_config.first) {
+        case 0x1976: Themes::purpleComfy(); break;
+        default: Themes::defaultTheme();
+        }
+    }
     config = Device::readConfig(mouse_config.first);
     if (!config.has_value())
         return;
