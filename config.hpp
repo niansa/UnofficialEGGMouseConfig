@@ -10,4 +10,4 @@ struct MouseConfig {
     bool hasMotionSyncAt8k = false;
 };
 
-extern const std::map<unsigned, MouseConfig> mouseConfigs;
+extern const std::map<unsigned short, MouseConfig> mouseConfigs;

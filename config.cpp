@@ -1,7 +1,7 @@
 #include "config.hpp"
 
 
-const std::map<unsigned, MouseConfig> mouseConfigs {
+const std::map<unsigned short, MouseConfig> mouseConfigs {
     {0x1966, {
                  .name = "XM2 8k"
              }},

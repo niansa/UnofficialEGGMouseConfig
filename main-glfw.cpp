@@ -1,5 +1,7 @@
 #include "application.hpp"
-#include "lemonmilk.h"
+#ifndef __EMSCRIPTEN__
+#   include "lemonmilk.h"
+#endif
 
 #include <cstdio>
 #include <cstdlib>
@@ -52,6 +54,7 @@ int main(int, char**) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
+#ifndef __EMSCRIPTEN__
     // Load Fonts
     // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
     // - AddFontFromFileTTF() will return the ImFont* so you can store it if you need to select the font among multiple.
@@ -69,6 +72,7 @@ int main(int, char**) {
     io.Fonts->AddFontFromMemoryCompressedTTF(lemonmilk_font_compressed_data, lemonmilk_font_compressed_size, 14.0f);
     //ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f, nullptr, io.Fonts->GetGlyphRangesJapanese());
     //IM_ASSERT(font != nullptr);
+#endif
 
     // Our state
     bool show_another_window = false;

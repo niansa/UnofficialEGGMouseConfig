@@ -12,7 +12,7 @@ class Application {
     std::optional<Device::ConfigData> config;
     std::optional<std::string> fw_version;
 
-    std::pair<unsigned, MouseConfig> mouse_config;
+    std::pair<unsigned, MouseConfig> mouse_config {0, {}};
 
     bool split_xy;
     bool custom_polling_rate;

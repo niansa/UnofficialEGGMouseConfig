@@ -10,6 +10,7 @@
 
 namespace Device {
 enum class OpCode : uint16_t {
+    none = 0x00a1,
     storeConfig = 0x11a0,
     loadConfig = 0x12a1,
     factoryReset = 0x13a1,
@@ -20,7 +21,7 @@ struct __attribute__((__packed__)) ConfigData {
     static constexpr unsigned cpi_count = 4,
                               button_config_count = 7;
 
-    OpCode op;
+    OpCode op = OpCode::none;
     uint8_t pad0[19] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
     uint8_t polling_rate_divider = 1; // polling_rate = 8KHz / polling_rate_divider
     struct FilterFlags {
@@ -131,15 +132,15 @@ static_assert(sizeof(ConfigData) == 1041);
 
 
 struct __attribute__((__packed__)) CommandData {
-    OpCode op;
+    OpCode op = OpCode::none;
     uint8_t pad0[62] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
 };
 static_assert(sizeof(CommandData) == 64);
 
 
-std::pair<unsigned, MouseConfig> getMouseConfig() noexcept;
-bool writeConfig(unsigned pid, ConfigData&) noexcept;
-std::optional<ConfigData> readConfig(unsigned pid) noexcept;
-bool factoryReset(unsigned pid) noexcept;
-std::string getVersion(unsigned pid) noexcept;
+std::pair<unsigned short, MouseConfig> getMouseConfig() noexcept;
+bool writeConfig(unsigned short pid, ConfigData&) noexcept;
+std::optional<ConfigData> readConfig(unsigned short pid) noexcept;
+bool factoryReset(unsigned short pid) noexcept;
+std::string getVersion(unsigned short pid) noexcept;
 }

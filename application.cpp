@@ -8,9 +8,15 @@
 #include <fstream>
 #include <cstdio>
 #include <unistd.h>
-#include <linux/limits.h>
+#ifdef __linux__
+#   include <linux/limits.h>
+#endif
 #include <imgui.h>
-#include <hidapi/hidapi.h>
+#ifdef __EMSCRIPTEN__
+#   include "fake-hidapi-emscripten.hpp"
+#else
+#   include <hidapi/hidapi.h>
+#endif
 #include <GL/gl.h>
 
 #include "themes.inc"
@@ -26,7 +32,6 @@ T *ptrFromConst() {
 
 
 Application::Application() {
-    mouse_config = Device::getMouseConfig();
     readConfig();
 
     switch (mouse_config.first) {
@@ -36,6 +41,8 @@ Application::Application() {
 }
 
 void Application::readConfig() {
+    if (mouse_config.first == 0)
+        mouse_config = Device::getMouseConfig();
     config = Device::readConfig(mouse_config.first);
     if (!config.has_value())
         return;
@@ -92,18 +99,14 @@ void Application::basicSettings() {
 }
 
 void Application::advancedSettings() {
-#ifndef HAS_MOTION_SYNC_AT_8K
-    if (config->polling_rate_divider <= 1) {
+    if (!mouse_config.second.hasMotionSyncAt8k && config->polling_rate_divider <= 1) {
         config->motion_sync = false;
         BeginDisabled(true);
     } else{
         BeginDisabled(false);
     }
-#endif
     Checkbox("Motion Sync", &config->motion_sync);
-#ifndef HAS_MOTION_SYNC_AT_8K
     EndDisabled();
-#endif
 
     const auto get_polling_rate_str = [] (unsigned rate) {
         return std::to_string(8000/(rate?rate:1))+" Hz";
@@ -301,6 +304,7 @@ void Application::render() {
             }
         } else {
             TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Waiting for device...");
+#ifdef __linux__
             if (getuid() != 0) {
                 Spacing();
                 if (Button("Use sudo")) {
@@ -317,6 +321,10 @@ void Application::render() {
                     }
                 }
             }
+#endif
+#ifdef __EMSCRIPTEN__
+            Button("Rescan");
+#endif
             readConfig();
         }
     }
