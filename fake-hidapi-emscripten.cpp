@@ -45,7 +45,7 @@ EM_ASYNC_JS(unsigned short, webhid_open_device, (unsigned vendorId), {
 EM_ASYNC_JS(bool, webhid_send_feature_report, (const unsigned char *data, size_t length), {
     var jsdata = new Uint8Array(length-1);
     for (var i = 0; i < length; i++) {
-        jsdata[i]=HEAPU8[data+1+i];
+        jsdata[i] = HEAPU8[data+1+i];
     }
 
     try {
@@ -61,7 +61,7 @@ EM_ASYNC_JS(int, webhid_get_feature_report, (unsigned char *data, size_t length)
         var dataView = await globalThis.hidDevice.receiveFeatureReport(HEAPU8[data]);
         const len = Math.min(dataView.byteLength, length);
         for (var i = 0; i < len; i++) {
-            HEAP8[data+i]=dataView.getUint8(i);
+            HEAP8[data+i] = dataView.getUint8(i);
         }
         return len - 1;
     } catch (e) {

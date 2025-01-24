@@ -1,16 +1,12 @@
 #include "application.hpp"
 #include "device.hpp"
 #include "config.hpp"
+#include "platform.hpp"
 
 #include <string>
 #include <optional>
 #include <algorithm>
 #include <fstream>
-#include <cstdio>
-#include <unistd.h>
-#ifdef __linux__
-#   include <linux/limits.h>
-#endif
 #include <imgui.h>
 #ifdef __EMSCRIPTEN__
 #   include "fake-hidapi-emscripten.hpp"
@@ -90,7 +86,7 @@ void Application::basicSettings() {
             InputScalar("X", ImGuiDataType_U16, &cpi.x, ptrFromConst<int, 50>(), ptrFromConst<int, 100>());
             InputScalar("Y", ImGuiDataType_U16, &cpi.y, ptrFromConst<int, 50>(), ptrFromConst<int, 100>());
         } else {
-            InputScalar("X", ImGuiDataType_U16, &cpi.x, ptrFromConst<int, 50>(), ptrFromConst<int, 100>());
+            InputScalar("X/Y", ImGuiDataType_U16, &cpi.x, ptrFromConst<int, 50>(), ptrFromConst<int, 100>());
             cpi.y = cpi.x;
         }
         PopID();
@@ -243,26 +239,11 @@ void Application::info() {
 
     Spacing();
     SeparatorText("Settings Backup");
-    if (Button("Export")) {
-        const auto path = fileDialog(true);
-        std::ofstream file(path, std::ios::binary);
-        file.write(reinterpret_cast<const char *>(&*config), sizeof(*config));
-    }
+    if (Button("Export"))
+        Platform::storeFile(reinterpret_cast<const char *>(&*config), sizeof(*config));
     SameLine();
-    if (Button("Import")) {
-        const auto path = fileDialog(false);
-        std::ifstream file(path, std::ios::binary);
-        file.read(reinterpret_cast<char *>(&*config), sizeof(*config));
-    }
-}
-
-std::string Application::fileDialog(bool saveMode) {
-    char filename[1024];
-    FILE *f = popen(("zenity --file-selection"+std::string(saveMode?" --save":"")).c_str(), "r");
-    fgets(filename, 1024, f);
-    filename[strlen(filename) - 1] = 0;
-    std::string file(filename);
-    return file;
+    if (Button("Import"))
+        Platform::loadFile(reinterpret_cast<char *>(&*config), sizeof(*config));
 }
 
 void Application::render() {
@@ -306,24 +287,12 @@ void Application::render() {
             }
         } else {
             TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "Waiting for device...");
-#ifdef __linux__
-            if (getuid() != 0) {
+            if (!Platform::isElevated()) {
                 Spacing();
-                if (Button("Use sudo")) {
-                    // Try for permission if config couldn't be read
-                    if (!config.has_value()) {
-                        char self[PATH_MAX];
-                        ssize_t self_len = readlink("/proc/self/exe", self, sizeof(self));
-                        if (self_len >= 0) {
-                            self[self_len] = '\0';
-                            execlp("pkexec", "pkexec", self, nullptr);
-                            execlp("gksudo", "gksudo", self, nullptr);
-                            execlp("x-terminal-emulator", "terminal", "-e", "sudo", "setsid", self, nullptr);
-                        }
-                    }
-                }
+                if (Button("Use sudo"))
+                    // Try restarting with elevated permissions if config couldn't be read
+                    Platform::restartElevated();
             }
-#endif
 #ifdef __EMSCRIPTEN__
             Button("Rescan");
 #endif

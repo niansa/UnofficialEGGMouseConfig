@@ -25,8 +25,6 @@ class Application {
     void experimentalSettings();
     void info();
 
-    static std::string fileDialog(bool saveMode);
-
 public:
     Application();
 

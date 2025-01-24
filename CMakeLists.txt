@@ -54,7 +54,8 @@ add_executable(EGGMouseConfig
     application.hpp application.cpp
     device.hpp device.cpp
     config.hpp config.cpp
-    themes.inc)
+    themes.inc
+    platform.hpp platform.cpp)
 target_compile_options(EGGMouseConfig PRIVATE -Wno-address-of-packed-member)
 target_compile_options(EGGMouseConfig PUBLIC -fdata-sections -ffunction-sections)
 target_compile_definitions(EGGMouseConfig PRIVATE PROJECT_VERSION="${GIT_TAG}" COMPILER_VERSION="${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")

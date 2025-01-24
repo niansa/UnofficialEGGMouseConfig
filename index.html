@@ -6,11 +6,38 @@
   <body style="background-color: #25282e;">
     <center>
       <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+      <input type='file' hidden>
+
       <script type='text/javascript'>
+        var onFileUploadFinish = null;
+        function initUploader() {
+          var oldInput = document.querySelector('input');
+
+          var newInput = document.createElement('input');
+          newInput.type = "file";
+          newInput.hidden = true;
+          oldInput.parentNode.replaceChild(newInput, oldInput);
+
+          var input = newInput;
+          input.addEventListener('change', (e) => {
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(e.target.files[0]);
+            reader.onloadend = (evt) => {
+              if (evt.target.readyState === FileReader.DONE) {
+                onFileUploadFinish(new Uint8Array(evt.target.result));
+              }
+            }
+          });
+        }
+        function triggerUploader() {
+          document.querySelector('input').click();
+        }
+
         var Module = {
           canvas: (function() { return document.getElementById('canvas'); })()
         };
       </script>
+      <script src="download.js"></script>
       <script src="EGGMouseConfig.js"></script>
     </center>
   </body>
