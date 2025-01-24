@@ -244,6 +244,17 @@ void Application::info() {
     SameLine();
     if (Button("Import"))
         Platform::loadFile(reinterpret_cast<char *>(&*config), sizeof(*config));
+
+    Spacing();
+    SeparatorText("Author");
+    TextUnformatted("niansa (@tuxifan)");
+    Spacing();
+    Link("GitHub Repository", "https://github.com/niansa/UnofficialEGGMouseConfig");
+}
+
+void Application::Link(const char *label, const char *url) {
+    if (Button(label))
+        Platform::openLink(url);
 }
 
 void Application::render() {

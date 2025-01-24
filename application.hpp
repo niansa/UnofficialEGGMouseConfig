@@ -25,6 +25,8 @@ class Application {
     void experimentalSettings();
     void info();
 
+    static void Link(const char *label, const char *url);
+
 public:
     Application();
 

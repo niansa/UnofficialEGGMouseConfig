@@ -43,6 +43,11 @@ void restartElevated() {
         execlp("x-terminal-emulator", "terminal", "-e", "sudo", "setsid", self, nullptr);
     }
 }
+
+void openLink(const char *url) {
+    if (fork() == 0)
+        execlp("xdg-open", "browser launcher", url, nullptr);
+}
 }
 #else
 namespace Emscripten {
@@ -66,6 +71,17 @@ EM_ASYNC_JS(bool, storeFile, (const char *buf, size_t len), {
     console.log("Export complete");
 
     download(jsdata, "profile.egg", "application/octet-stream");
+});
+
+EM_ASYNC_JS(void, openLink, (const char *url), {
+    var string = "";
+    for (let i = 0; ; i++) {
+        const char = HEAPU8[url+i];
+        if (char === 0)
+            break;
+        string += String.fromCharCode(char);
+    }
+    window.open(string, '_blank').focus();
 });
 }
 #endif
@@ -110,6 +126,14 @@ bool isElevated() {
     return Native::isElevated();
 #else
     return true;
+#endif
+}
+
+void openLink(const char *url) {
+#ifndef __EMSCRIPTEN__
+    Native::openLink(url);
+#else
+    Emscripten::openLink(url);
 #endif
 }
 }
