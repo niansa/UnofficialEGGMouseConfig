@@ -11,11 +11,31 @@ unsigned short current_product_id = 0xffff;
 
 EM_ASYNC_JS(unsigned short, webhid_open_device, (unsigned vendorId), {
     try {
-        globalThis.hidDevice = (await navigator.hid.requestDevice({filters: [{vendorId: vendorId}]}))[1];
-        if (globalThis.hidDevice === undefined || globalThis.hidDevice === null) {
+        var hidDevices = await navigator.hid.requestDevice({filters: [{vendorId: vendorId}]});
+        if (hidDevices === undefined || hidDevices === null || hidDevices.length === 0) {
             return 0;
         }
-        await globalThis.hidDevice.open();
+        globalThis.hidDevice = null;
+        for (var i = 0; i < hidDevices.length; i++) {
+            globalThis.hidDevice = hidDevices[i];
+            console.log(globalThis.hidDevice);
+            try {
+                await globalThis.hidDevice.open();
+                await globalThis.hidDevice.sendFeatureReport(0xa1, new Uint8Array([123, 456, 789, 123]));
+                console.log("Device selected.");
+                break;
+            } catch (e) {
+                console.log("Skipped unsuitable device: "+e);
+                try {
+                    await globalThis.hidDevice.close();
+                } catch (e) {}
+                globalThis.hidDevice = null;
+            }
+        }
+        if (globalThis.hidDevice === null) {
+            console.log("Could not find HID device that accepts feature reports");
+            return 0;
+        }
         return globalThis.hidDevice.productId;
     } catch (e) {
         return 0;
