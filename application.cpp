@@ -246,10 +246,12 @@ void Application::info() {
         Platform::loadFile(reinterpret_cast<char *>(&*config), sizeof(*config));
 
     Spacing();
-    SeparatorText("Author");
-    TextUnformatted("niansa (@tuxifan)");
+    SeparatorText("Credits");
+    TextUnformatted(" - niansa (@tuxifan)");
+    TextUnformatted(" - elin_lyze");
     Spacing();
     Link("GitHub Repository", "https://github.com/niansa/UnofficialEGGMouseConfig");
+
 }
 
 void Application::Link(const char *label, const char *url) {
