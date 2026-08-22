@@ -20,4 +20,9 @@ const std::map<unsigned short, MouseConfig> mouseConfigs {
                  .hasGlassMode = true,
                  .hasMotionSyncAt8k = true
              }},
+    {0x1980, {
+                 .name = "XM2 8k v2",
+                 .hasGlassMode = true,
+                 .hasMotionSyncAt8k = true
+             }},
 };

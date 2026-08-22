@@ -19,6 +19,7 @@ This is an unofficial configuration tool for EGG XM2 and OP1 8k gaming mice.
 
 Currently supported models:
 - EGG XM2 8k (PID: `0x1966`)
+- EGG XM2 8k v2 (PID: `0x1980`)
 - EGG OP1 8k Purple Frost (PID: `0x1976`)
 - EGG OP1 8k v2 (PID: `0x1978`)
 
